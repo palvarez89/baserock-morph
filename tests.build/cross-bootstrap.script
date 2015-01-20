@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2013  Codethink Limited
+# Copyright (C) 2013, 2015  Codethink Limited
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,13 +16,13 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-# Test "morph cross-bootstrap", up to the point of the tarball it generates
-# for the target
+# Test "morph cross-bootstrap-morphology", up to the point of the tarball
+# it generates for the target
 
 set -eu
 
 "$SRCDIR/tests.build/setup-build-essential"
 
-"$SRCDIR/scripts/test-morph" cross-bootstrap \
+"$SRCDIR/scripts/test-morph" cross-bootstrap-morphology \
     $("$SRCDIR/scripts/test-morph" print-architecture) \
     test:morphs-repo master hello-system
