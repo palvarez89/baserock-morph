@@ -1,4 +1,4 @@
-# Copyright (C) 2013-2014  Codethink Limited
+# Copyright (C) 2013-2015  Codethink Limited
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -202,15 +202,15 @@ class BootstrapSystemBuilder(morphlib.builder.BuilderBase):
 class CrossBootstrapPlugin(cliapp.Plugin):
 
     def enable(self):
-        self.app.add_subcommand('cross-bootstrap',
-                                self.cross_bootstrap,
+        self.app.add_subcommand('cross-bootstrap-morphology',
+                                self.cross_bootstrap_morphology,
                                 arg_synopsis='TARGET REPO REF SYSTEM-MORPH')
 
     def disable(self):
         pass
 
-    def cross_bootstrap(self, args):
-        '''Cross-bootstrap a system from a different architecture.'''
+    def cross_bootstrap_morphology(self, args):
+        '''Cross-bootstrap a system outside of a system branch.'''
 
         # A brief overview of this process: the goal is to native build as much
         # of the system as possible because that's easier, but in order to do
@@ -233,8 +233,9 @@ class CrossBootstrapPlugin(cliapp.Plugin):
 
         if len(args) < 4:
             raise cliapp.AppException(
-                'cross-bootstrap requires 4 arguments: target archicture, and '
-                'repo, ref and and name of the system morphology')
+                'cross-bootstrap-morphology requires 4 arguments: target'
+                'archicture, and repo, ref and and name of the system'
+                'morphology')
 
         arch = args[0]
         root_repo, ref, system_name = args[1:4]
