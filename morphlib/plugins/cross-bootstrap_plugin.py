@@ -19,6 +19,7 @@ import os.path
 import re
 import tarfile
 import traceback
+import uuid
 
 import morphlib
 
@@ -202,6 +203,9 @@ class BootstrapSystemBuilder(morphlib.builder.BuilderBase):
 class CrossBootstrapPlugin(cliapp.Plugin):
 
     def enable(self):
+        self.app.add_subcommand('cross-bootstrap',
+                                self.cross_bootstrap,
+                                arg_synopsis='TARGET SYSTEM-MORPH')
         self.app.add_subcommand('cross-bootstrap-morphology',
                                 self.cross_bootstrap_morphology,
                                 arg_synopsis='TARGET REPO REF SYSTEM-MORPH')
@@ -305,3 +309,59 @@ class CrossBootstrapPlugin(cliapp.Plugin):
             msg='Bootstrap tarball for %(name)s is cached at %(cachepath)s',
             name=system_artifact.name,
             cachepath=build_command.lac.artifact_filename(system_artifact))
+
+
+    def cross_bootstrap(self, args):
+        '''Cross-bootstrap a system from a different architecture.'''
+
+        if len(args) < 2:
+            raise cliapp.AppException(
+                'cross-bootstrap requires 2 arguments: target '
+                'archicture, and name of the system morphology')
+
+        arch = args[0]
+        system_name = args[1]
+
+        if arch not in morphlib.valid_archs:
+            raise morphlib.Error('Unsupported architecture "%s"' % arch)
+
+        sb = morphlib.sysbranchdir.open_from_within('.')
+
+        if self.app.settings['local-changes'] == 'include':
+
+            build_uuid = uuid.uuid4().hex
+
+            loader = morphlib.morphloader.MorphologyLoader()
+            push = self.app.settings['push-build-branches']
+            name = morphlib.git.get_user_name(self.app.runcmd)
+            email = morphlib.git.get_user_email(self.app.runcmd)
+            build_ref_prefix = self.app.settings['build-ref-prefix']
+
+            self.app.status(msg='Starting cross-bootstrap %(uuid)s',
+                                uuid=build_uuid)
+            self.app.status(msg='Collecting morphologies involved in '
+                                'building %(system)s from %(branch)s',
+                                system=system_name,
+                                branch=sb.system_branch_name)
+
+            bb = morphlib.buildbranch.BuildBranch(sb, build_ref_prefix)
+            pbb = morphlib.buildbranch.pushed_build_branch(
+                    bb, loader=loader, changes_need_pushing=push,
+                    name=name, email=email, build_uuid=build_uuid,
+                    status=self.app.status)
+            with pbb as (repo, commit, original_ref):
+                self.cross_bootstrap_morphology([arch, repo, commit,
+                                                 system_name])
+
+        else:
+            root_repo_url = sb.get_config('branch.root')
+            ref = sb.get_config('branch.name')
+
+            definitions_repo_path = sb.get_git_directory_name(root_repo_url)
+            definitions_repo = morphlib.gitdir.GitDirectory(
+                                    definitions_repo_path)
+            commit = definitions_repo.resolve_ref_to_commit(ref)
+
+            self.cross_bootstrap_morphology([arch, root_repo_url,
+                                             commit, system_name])
+
