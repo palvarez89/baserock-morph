@@ -15,12 +15,13 @@ Morph Cross-Building Tests
 Morph Cross-Bootstrap Tests
 ===========================
 
-    SCENARIO cross-bootstraping a system for a different architecture
+    SCENARIO cross-bootstraping and cross-bootstrap-morphology a system for a different architecture
     GIVEN a workspace
     AND a git server
     AND a system called base-system-testarch.morph for the test architecture in the git server
     WHEN the user checks out the system branch called master
     THEN the user cross-bootstrap-morphology the system base-system-testarch.morph in branch master of repo test:morphs to the arch testarch
+    THEN the user cross-bootstraps the system base-system-testarch.morph in branch master to the arch testarch
     FINALLY the git server is shut down
 
 Architecture validation Tests
